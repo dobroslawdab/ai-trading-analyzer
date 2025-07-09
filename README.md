@@ -1,16 +1,29 @@
 # 🚀 AI Trading Analyzer
 
-System analizy tradingowej z AI - automatyczne decyzje BUY/SELL/WAIT na podstawie danych OHLCV i wskaźników technicznych.
+System analizy tradingowej z AI - automatyczne decyzje BUY/SELL/WAIT na podstawie danych z **Coinbase Pro** i **CoinMarketCap**.
 
 ## 🎯 Funkcjonalności
 
-- 📊 **Pobieranie danych OHLCV** z Binance API
+- 📊 **Pobieranie danych OHLCV** z Coinbase Pro API
+- 📈 **Dane fundamentalne** z CoinMarketCap API
+- 🔄 **Fallback** do CoinGecko API
 - 🔍 **Analiza techniczna** (EMA, RSI, Stochastic RSI)
 - 🤖 **Analiza AI** z OpenAI GPT-4
-- 📈 **Automatyczne sygnały** BUY/SELL/WAIT
-- 📱 **API REST** do integracji
+- 📱 **API REST** z automatyczną konwersją symboli
 - 🔄 **Monitoring w czasie rzeczywistym**
-- 📊 **Wizualizacja danych**
+
+## 🔗 Źródła danych
+
+### **Główne API:**
+1. **Coinbase Pro API** - dane OHLCV (świece cenowe)
+2. **CoinMarketCap API** - dane fundamentalne (market cap, volume, zmiany)
+3. **CoinGecko API** - fallback dla obu źródeł
+
+### **Wspierane symbole:**
+- `BTC-USD`, `ETH-USD`, `ADA-USD`, `DOT-USD`, `SOL-USD`
+- `MATIC-USD`, `AVAX-USD`, `ATOM-USD`, `LINK-USD`, `UNI-USD`
+
+*System automatycznie konwertuje między formatami symboli*
 
 ## 🚀 Szybki start
 
@@ -26,53 +39,57 @@ npm install
 cp .env.example .env
 # Uzupełnij .env swoimi kluczami API
 
-# Uruchomienie
+# Szybka analiza
+npm run analyze BTC-USD
+
+# Uruchomienie API
 npm start
 ```
 
 ## 🔧 Konfiguracja
 
-### Wymagane klucze API:
-- **OpenAI API** - do analizy AI (WYMAGANE)
-- **Binance API** - do pobierania danych OHLCV (opcjonalne)
-- **CoinMarketCap API** - do danych fundamentalnych (opcjonalne)
+### **Wymagane klucze API:**
+- ✅ **OpenAI API** - do analizy AI (WYMAGANE)
+- ✅ **CoinMarketCap API** - do danych fundamentalnych (WYMAGANE)
 
-### Zmienne środowiskowe (.env):
+### **Opcjonalne klucze API:**
+- 🔄 **Coinbase Pro API** - dla lepszej wydajności (opcjonalne)
+
+### **Zmienne środowiskowe (.env):**
 ```env
 # WYMAGANE
 OPENAI_API_KEY=sk-your-openai-key
+COINMARKETCAP_API_KEY=your-coinmarketcap-key
 
-# OPCJONALNE (bez nich system będzie działał z ograniczeniami)
-BINANCE_API_KEY=your_binance_key
-BINANCE_API_SECRET=your_binance_secret  
-COINMARKETCAP_API_KEY=your_cmc_key
+# OPCJONALNE
+# COINBASE_API_KEY=your-coinbase-key
+# COINBASE_SECRET=your-coinbase-secret
 
-# Konfiguracja tradingu
-DEFAULT_SYMBOL=BTCUSDT
+# Konfiguracja
+DEFAULT_SYMBOL=BTC-USD
 DEFAULT_INTERVAL=1h
 LEVERAGE=10
 POSITION_SIZE=1000
-RISK_TOLERANCE=medium
 ```
 
 ## 📊 Jak to działa
 
-1. **Pobieranie danych** - System pobiera dane OHLCV z Binance
-2. **Obliczanie wskaźników** - Kalkuluje EMA, RSI, Stochastic RSI
-3. **Przygotowanie pakietu** - Tworzy strukturę danych dla AI
-4. **Analiza AI** - Wysyła dane do GPT-4 z promptem
-5. **Decyzja** - Otrzymuje strukturalną odpowiedź BUY/SELL/WAIT
-6. **Logowanie** - Zapisuje wszystkie decyzje i sygnały
+1. **Pobieranie danych OHLCV** z Coinbase Pro
+2. **Pobieranie danych fundamentalnych** z CoinMarketCap
+3. **Obliczanie wskaźników** technicznych (EMA, RSI, Stochastic RSI)
+4. **Przygotowanie pakietu** danych dla AI
+5. **Analiza AI** z GPT-4
+6. **Strukturalna odpowiedź** BUY/SELL/WAIT
 
 ## 🎯 Struktura danych dla AI
 
-System przygotowuje kompletny pakiet danych:
-
 ```json
 {
-  "symbol": "BTCUSDT",
-  "interval": "1h",
-  "leverage": 10,
+  "symbol": "BTC-USD",
+  "data_sources": {
+    "ohlcv": "Coinbase Pro API",
+    "fundamentals": "CoinMarketCap API"
+  },
   "ohlcv_data": {
     "candles": [
       {
@@ -85,218 +102,215 @@ System przygotowuje kompletny pakiet danych:
       }
     ]
   },
+  "coinmarketcap_data": {
+    "market_cap": 700000000000,
+    "volume_24h": 30000000000,
+    "percent_change_1h": -0.2,
+    "percent_change_24h": 1.5,
+    "percent_change_7d": 10,
+    "percent_change_30d": 15,
+    "market_cap_dominance": 52.3
+  },
   "technical_indicators": {
     "fastEMA": [34500, 34600, 34700],
     "slowEMA": [34300, 34400, 34500],
     "rsi": [45, 50, 55],
     "stochRSI": [40, 45, 50],
-    "currentTrend": "bullish",
-    "emaCrossover": "bullish_crossover"
-  },
-  "market_context": {
-    "volume_24h": 30000000000,
-    "percent_change_24h": 1.5,
-    "market_cap": 700000000000
+    "currentTrend": "bullish"
   }
 }
 ```
 
 ## 🔌 API Endpoints
 
-- `GET /api/status` - Status systemu
-- `GET /api/analysis/:symbol` - Analiza dla symbolu
+### **Analiza:**
+- `GET /api/analysis/BTC-USD` - Analiza Bitcoin
 - `POST /api/analyze` - Ręczna analiza z parametrami
 - `GET /api/signals` - Ostatnie sygnały
-- `GET /api/market-data/:symbol` - Dane rynkowe
+
+### **Dane rynkowe:**
+- `GET /api/market-data/BTC-USD` - Dane z Coinbase + CoinMarketCap
+- `GET /api/coinmarketcap/BTC-USD` - Dane tylko z CoinMarketCap
+- `GET /api/supported-symbols` - Lista wspieranych symboli
+
+### **System:**
+- `GET /api/status` - Status systemu
+- `GET /api/config` - Konfiguracja
 - `DELETE /api/cache` - Wyczyść cache
-- `GET /api/config` - Aktualna konfiguracja
-- `PUT /api/config` - Aktualizuj konfigurację
 
-## 📈 Przykład użycia
+## 📈 Przykłady użycia
 
-### Linia komend:
+### **Linia komend:**
 ```bash
-# Szybka analiza BTCUSDT
-npm run analyze BTCUSDT
+# Bitcoin
+npm run analyze BTC-USD
 
-# Analiza innej krypto
-npm run analyze ETHUSDT
+# Ethereum
+npm run analyze ETH-USD
+
+# Cardano
+npm run analyze ADA-USD
 ```
 
-### API:
+### **API:**
 ```bash
 # Status systemu
 curl http://localhost:3000/api/status
 
-# Analiza BTC
-curl http://localhost:3000/api/analysis/BTCUSDT
+# Analiza Bitcoin
+curl http://localhost:3000/api/analysis/BTC-USD
 
-# Ostatnie sygnały
-curl http://localhost:3000/api/signals
+# Dane z CoinMarketCap
+curl http://localhost:3000/api/coinmarketcap/BTC-USD
+
+# Wspierane symbole
+curl http://localhost:3000/api/supported-symbols
 ```
 
-### Programowo:
+### **Programowo:**
 ```javascript
 import { TradingAnalyzer } from './src/TradingAnalyzer.js';
 
 const analyzer = new TradingAnalyzer();
-const result = await analyzer.analyze('BTCUSDT');
 
-console.log(result);
-// {
-//   decision: 'BUY',
-//   confidence: 'High',
-//   entry_price: 35200,
-//   stop_loss: 34800,
-//   take_profit: 36000
-// }
-```
-
-## 🧠 Logika AI
-
-System używa zaawansowanego prompta dla AI:
-
-```
-# Analiza Trading AI
-
-## Zadanie
-Przeanalizuj dane tradingowe i podaj rekomendację: BUY, SELL, lub WAIT.
-
-## Kontekst
-- Dźwignia: 10x (wysokie ryzyko!)
-- Rozmiar pozycji: $1000
-- Tolerancja ryzyka: medium
-
-## Wymagany format odpowiedzi (JSON):
-{
-  "decision": "BUY|SELL|WAIT",
-  "confidence": "High|Medium|Low",
-  "entry_price": number,
-  "stop_loss": number,
-  "take_profit": number,
-  "risk_reward_ratio": number,
-  "reasons": ["powód 1", "powód 2"],
-  "warnings": ["ostrzeżenie 1", "ostrzeżenie 2"]
-}
-```
-
-## 🔍 Wskaźniki techniczne
-
-### Implementowane wskaźniki:
-- **EMA (Exponential Moving Average)**: Fast EMA (12) vs Slow EMA (25)
-- **RSI (Relative Strength Index)**: 14-period RSI
-- **Stochastic RSI**: K=3, D=3 smoothing
-- **Volume Analysis**: Potwierdzenie sygnałów wolumenem
-- **Trend Detection**: Analiza kierunku trendu
-
-### Logika sygnałów:
-```javascript
-// Buy Signal
-if (fastEMA > slowEMA && !previousBuySignal) {
-  generateBuySignal();
-}
-
-// Sell Signal  
-if (fastEMA < slowEMA && previousBuySignal) {
-  generateSellSignal();
-}
-
-// Signal Strength
-if (RSI < 30 && StochRSI < 20) strength = "Strong";
-else if (RSI < 40 && StochRSI < 30) strength = "Medium";
-else strength = "Weak";
+// Analiza Bitcoin
+const result = await analyzer.analyze('BTC-USD');
+console.log(`Decyzja: ${result.analysis.decision}`);
+console.log(`Źródła: ${result.data_sources.ohlcv} + ${result.data_sources.fundamentals}`);
 ```
 
 ## 🔄 Automatyzacja
 
-### Cron Jobs:
-- **Co 15 minut**: Automatyczne analizy dla BTCUSDT, ETHUSDT, ADAUSDT, DOTUSDT
-- **Co godzinę**: Czyszczenie przestarzałego cache
+- ⏰ **Automatyczne analizy** co 15 minut
+- 🗂️ **Cache system** (5 minut)
+- 📊 **Monitoring** symboli: BTC-USD, ETH-USD, ADA-USD, DOT-USD, SOL-USD
+- 🔄 **Auto-refresh** danych z Coinbase + CoinMarketCap
 
-### Cache System:
-- Przechowuje analizy przez 5 minut
-- Automatyczne odświeżanie dla popularnych symboli
-- Możliwość ręcznego czyszczenia
+## 🛡️ Redundancja danych
 
-## 📋 Logi
+### **Strategia fallback:**
+1. **Coinbase Pro API** (primary) - dane OHLCV
+2. **CoinGecko API** (fallback) - dane OHLCV jeśli Coinbase nie działa
 
-System loguje wszystkie operacje:
+### **Dane fundamentalne:**
+1. **CoinMarketCap API** (primary) - pełne dane fundamentalne
+2. **CoinGecko API** (fallback) - podstawowe dane rynkowe
 
-```
-2024-06-01T10:30:00Z [info]: Rozpoczynam analizę dla BTCUSDT
-2024-06-01T10:30:02Z [info]: Pobrano 100 świec dla BTCUSDT
-2024-06-01T10:30:03Z [info]: Obliczono wskaźniki techniczne
-2024-06-01T10:30:05Z [info]: Otrzymano analizę AI: BUY (High)
-2024-06-01T10:30:05Z [info]: Analiza zakończona: BUY (High)
-```
-
-## 🛡️ Bezpieczeństwo
-
-- Klucze API przechowywane w zmiennych środowiskowych
-- Walidacja wszystkich wejść
-- Rate limiting dla API
-- Logowanie wszystkich operacji
-- Timeout dla zapytań zewnętrznych
-
-## 🧪 Testowanie
+## 📊 Przykład wyniku
 
 ```bash
-# Uruchom testy
-npm test
-
-# Test konkretnej funkcji
-npm run analyze BTCUSDT
-
-# Test API
-curl http://localhost:3000/api/status
+npm run analyze BTC-USD
 ```
 
-## 📊 Monitoring
+```
+📊 WYNIK ANALIZY
+================
+Symbol: BTC-USD
+Źródła: Coinbase Pro API + CoinMarketCap API
+Ostatnia cena: $35,247.82
+Trend: bullish
 
-### Metryki systemu:
-- Liczba przeprowadzonych analiz
-- Czas odpowiedzi API
-- Sukcesowość połączeń z zewnętrznymi API
-- Rozmiar cache
+🤖 DECYZJA AI
+==============
+Decyzja: BUY
+Pewność: High
+Cena wejścia: $35,247.82
+Stop Loss: $34,800.00
+Take Profit: $36,200.00
 
-### Health Check:
-```bash
-curl http://localhost:3000/api/status
+✅ POWODY:
+1. Fast EMA crossed above Slow EMA with strong momentum
+2. CoinMarketCap shows positive 24h change (+2.4%)
+3. Volume confirmation from both sources
+4. Market cap dominance stable at 52.3%
 
-# Odpowiedź:
+📊 COINMARKETCAP ANALIZA:
+- Market Cap: $700B
+- Volume 24h: $30B
+- Dominance: 52.3%
+- Zmiana 7d: +10%
+```
+
+## 🧠 Logika AI
+
+### **Zaawansowany prompt:**
+```
+# Analiza Trading AI - Coinbase + CoinMarketCap
+
+## Dane OHLCV (Coinbase Pro):
+[świece cenowe z volume]
+
+## Dane CoinMarketCap:
+[market cap, volume, zmiany %, dominance]
+
+## Wskaźniki techniczne:
+[EMA, RSI, Stochastic RSI]
+
+Wymagany format JSON:
 {
-  "status": "running",
-  "timestamp": "2024-06-01T10:30:00Z",
-  "version": "1.0.0",
-  "cache_size": 4
+  "decision": "BUY|SELL|WAIT",
+  "confidence": "High|Medium|Low",
+  "reasons": ["powód z analizy technicznej", "powód z CoinMarketCap"],
+  "coinmarketcap_signals": "analiza danych z CMC"
 }
 ```
 
-## 🛠 Technologie
+## 🔍 Konwersja symboli
 
-- **Node.js** - Runtime
-- **Express** - Web framework
-- **OpenAI GPT-4** - Analiza AI
-- **Technical Indicators** - Wskaźniki techniczne
-- **Binance API** - Dane rynkowe
-- **Winston** - Logowanie
-- **Node-cron** - Zadania cykliczne
+System automatycznie konwertuje między formatami:
 
-## 🚨 Ważne ostrzeżenia
+```javascript
+// Akceptowane formaty wejściowe:
+'BTC' → 'BTC-USD'
+'BTCUSD' → 'BTC-USD'
+'BTCUSDT' → 'BTC-USD'
+'BTC-USD' → 'BTC-USD' (bez zmian)
 
-⚠️ **To narzędzie służy celom edukacyjnym i badawczym**
+// Mapowanie na CoinMarketCap:
+'BTC-USD' → 'BTC'
+'ETH-USD' → 'ETH'
 
+// Mapowanie na CoinGecko:
+'BTC-USD' → 'bitcoin'
+'ETH-USD' → 'ethereum'
+```
+
+## 🐳 Docker
+
+```bash
+# Uruchomienie z Docker Compose
+docker-compose up -d
+
+# Sprawdzenie logów
+docker-compose logs -f ai-trading-analyzer
+```
+
+## 📚 Dokumentacja
+
+- **README.md** - Główna dokumentacja
+- **EXAMPLES.md** - Szczegółowe przykłady
+- **PROJECT_SUMMARY.md** - Podsumowanie projektu
+
+## ⚠️ Ważne ostrzeżenia
+
+🚨 **To narzędzie służy celom edukacyjnym**
 - Nie stanowi porady inwestycyjnej
 - Trading kryptowalut niesie wysokie ryzyko
-- Dźwignia zwiększa zarówno zyski jak i straty
 - Zawsze przeprowadzaj własne badania (DYOR)
-- Nie inwestuj więcej niż możesz stracić
+- Dane z CoinMarketCap mogą mieć opóźnienia
+
+## 🔗 Linki do API
+
+- [Coinbase Pro API](https://docs.pro.coinbase.com/)
+- [CoinMarketCap API](https://coinmarketcap.com/api/)
+- [CoinGecko API](https://www.coingecko.com/en/api)
+- [OpenAI API](https://platform.openai.com/docs)
 
 ## 🤝 Wsparcie
 
-- 📧 Issues: [GitHub Issues](https://github.com/dobroslawdab/ai-trading-analyzer/issues)
-- 📚 Wiki: [GitHub Wiki](https://github.com/dobroslawdab/ai-trading-analyzer/wiki)
-- 💬 Dyskusje: [GitHub Discussions](https://github.com/dobroslawdab/ai-trading-analyzer/discussions)
+- 🐛 **Issues**: [GitHub Issues](https://github.com/dobroslawdab/ai-trading-analyzer/issues)
+- 📖 **Wiki**: [GitHub Wiki](https://github.com/dobroslawdab/ai-trading-analyzer/wiki)
+- 💬 **Discussions**: [GitHub Discussions](https://github.com/dobroslawdab/ai-trading-analyzer/discussions)
 
 ## 📄 Licencja
 
@@ -304,15 +318,4 @@ MIT License - zobacz [LICENSE](LICENSE) dla szczegółów.
 
 ---
 
-**Pamiętaj**: AI może mylić się tak samo jak ludzie. Używaj tego narzędzia jako wsparcia, ale ostateczne decyzje podejmuj sam na podstawie kompleksowej analizy!
-
-## 🎯 Roadmap
-
-- [ ] Dodanie więcej wskaźników technicznych (MACD, Bollinger Bands)
-- [ ] Integracja z więcej giełd kryptowalut
-- [ ] Dashboard webowy z wizualizacjami
-- [ ] Backtesting strategies
-- [ ] Telegram/Discord boty
-- [ ] Paper trading simulator
-- [ ] Machine learning models
-- [ ] Portfolio management
+**System zoptymalizowany dla Coinbase Pro + CoinMarketCap! 🚀**
